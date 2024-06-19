@@ -14,26 +14,6 @@ exports.createPost = function (data) {
     return Promise.reject(error);
   }
 };
-exports.createCommunity = async function (data) {
-  return await createCommunity(data);
-};
-exports.getCommunityPost = async function (data) {
-  return await getCommunityPost(data);
-};
-exports.createCommunityPost = async function (data) {
-  return await createCommunityPost(data);
-};
-exports.getCommunity = async function (data) {
-  return await getCommunity(data);
-};
-
-exports.getUnApproveCommunity = async function (data) {
-  return await getUnApproveCommunity(data);
-};
-
-exports.getApproveCommunity = async function (data) {
-  return await getApproveCommunity(data);
-};
 
 exports.likeFeedPost = async function (data) {
   return await likeFeedPost(data);
