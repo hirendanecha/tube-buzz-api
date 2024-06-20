@@ -122,15 +122,15 @@ featuredChannels.CreateSubAdmin = async function (data, result) {
   const query1 = `select * from channelAdmins where profileId = ${data.profileId} and channelId = ${data.channelId}`;
   const sameChannel = await executeQuery(query1);
   if (!sameChannel.length > 0) {
-    console.log(data);
-    const query = `select u.Email,u.Username from users as u left join profile as p on u.Id = p.UserID where p.ID = ${data.profileId} `;
-    const user = await executeQuery(query);
-    console.log("user", user);
-    const userData = {
-      Username: user[0].Username,
-      Email: user[0].Email,
-    };
-    await channelNotificationEmail(userData);
+    // console.log(data);
+    // const query = `select u.Email,u.Username from users as u left join profile as p on u.Id = p.UserID where p.ID = ${data.profileId} `;
+    // const user = await executeQuery(query);
+    // console.log("user", user);
+    // const userData = {
+    //   Username: user[0].Username,
+    //   Email: user[0].Email,
+    // };
+    // await channelNotificationEmail(userData);
     db.query("insert into channelAdmins set ?", data, function (err, res) {
       if (err) {
         result(err, null);
