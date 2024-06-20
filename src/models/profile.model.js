@@ -99,7 +99,7 @@ Profile.FindById = async function (profileId) {
             p.UniqueLink,
             p.AccountType,
             p.userStatus
-     FROM users as u left join profile as p on p.UserID = u.Id AND p.ID = ?;`;
+     FROM users as u left join profile as p on p.UserID = u.Id Where p.ID = ?;`;
   const values = profileId;
   let profile = await executeQuery(query, values);
   const query1 =
