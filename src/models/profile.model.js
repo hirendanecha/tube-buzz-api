@@ -73,30 +73,33 @@ Profile.FindById = async function (profileId) {
   //     }
   //   }
   // );
-  const query = `SELECT ID as Id,
-    FirstName,
-    LastName,
-    UserID,
-    MobileNo,
-    Gender,
-    DateofBirth,
-    Address,
-    City,
-    State,
-    Zip,
-    Country,
-    Business_NP_TypeID,
-    CoverPicName,
-    IsActivated,
-    Username,
-    ProfilePicName,
-    EmailVerified,
-    CreatedOn,
-    AccountType,
-    MediaApproved,
-    County,
-    userStatus
-  FROM profile WHERE ID=?`;
+  const query = `SELECT 
+            u.Email,
+            u.Username,
+            u.IsActive,
+            u.DateCreation,
+            u.IsAdmin,
+            u.FirstName,
+            u.LastName,
+            u.Address,
+            u.Country,
+            u.City,
+            u.State,
+            u.Zip,
+            u.IsSuspended,
+            u.AccountType,
+            p.ID as profileId,
+            p.UserID,
+            p.CoverPicName,
+            p.ProfilePicName,
+            p.MobileNo,
+            p.MediaApproved,
+            p.ChannelType,
+            p.DefaultUniqueLink,
+            p.UniqueLink,
+            p.AccountType,
+            p.userStatus
+     FROM users as u left join profile as p on p.UserID = u.Id AND p.ID = ?;`;
   const values = profileId;
   let profile = await executeQuery(query, values);
   const query1 =
