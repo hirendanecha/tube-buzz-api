@@ -434,7 +434,7 @@ exports.verification = function (req, res) {
         return res.redirect(
           `${
             environments.FRONTEND_URL
-          }/user/verification-expired?user=${encodeURIComponent(data.email)}`
+          }user/verification-expired?user=${encodeURIComponent(data.email)}`
         );
       }
       return utils.send500(res, err);
@@ -443,7 +443,7 @@ exports.verification = function (req, res) {
     // if (data.IsAdmin === "Y") {
     //   return res.redirect(`${environments.ADMIN_URL}/auth/partner-login`);
     // }
-    return res.redirect(`${environments.FRONTEND_URL}/login?isVerify=true`);
+    return res.redirect(`${environments.FRONTEND_URL}login?isVerify=true`);
   });
 };
 
