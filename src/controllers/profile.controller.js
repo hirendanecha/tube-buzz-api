@@ -3,7 +3,6 @@ const utils = require("../helpers/utils");
 const environments = require("../environments/environment");
 const { getPagination, getCount, getPaginationData } = require("../helpers/fn");
 const User = require("../models/user.model");
-const { query } = require("../../config/db.config");
 
 exports.create = function (req, res) {
   if (req.body.constructor === Object && Object.keys(req.body).length === 0) {

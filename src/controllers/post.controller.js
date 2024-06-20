@@ -2,10 +2,6 @@ const Post = require("../models/post.model");
 const utils = require("../helpers/utils");
 const s3 = require("../helpers/aws-s3.helper");
 const og = require("open-graph");
-const { getPagination, getCount, getPaginationData } = require("../helpers/fn");
-// const socket = require("../helpers/socket.helper");
-const io = require("socket.io-client");
-
 exports.findAll = async function (req, res) {
   const postData = await Post.findAll(req.body);
   return res.send(postData);

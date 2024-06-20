@@ -81,13 +81,13 @@ featuredChannels.findChannelById = async function (id) {
   const query2 =
     "select ca.*,p.Username, p.ProfilePicName,p.FirstName,p.LastName,p.CoverPicName,u.Email,p.UserID from channelAdmins as ca left join profile as p on p.ID = ca.profileId left join users as u on u.Id = p.UserID  where ca.channelId = ?;";
   const values = [id];
-  const community = await executeQuery(query1, values);
+  const channel = await executeQuery(query1, values);
   const members = await executeQuery(query2, values);
-  community.map((e) => {
+  channel.map((e) => {
     e.memberList = members;
     return e;
   });
-  return community;
+  return channel;
 };
 
 featuredChannels.getUsersByUsername = async function (searchText) {

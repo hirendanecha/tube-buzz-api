@@ -38,13 +38,13 @@ exports.searchAllData = async (req, res) => {
 
 exports.findChannelById = async function (req, res) {
   if (req.params.id) {
-    const community = await featuredChannels.findChannelById(req.params.id);
-    if (community) {
-      res.send(community);
+    const channels = await featuredChannels.findChannelById(req.params.id);
+    if (channels) {
+      res.send(channels);
     } else {
       res.status(400).send({
         error: true,
-        message: "Community not found",
+        message: "Channel not found",
       });
     }
   }
