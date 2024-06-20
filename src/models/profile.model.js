@@ -108,7 +108,7 @@ Profile.FindById = async function (profileId) {
   const channelId = await executeQuery(query1, value1);
   profile[0]["channelId"] = channelId[0]?.channelId;
   console.log("test", profile);
-  return profile;
+  return profile[0];
 };
 
 Profile.update = function (profileId, profileData, result) {
