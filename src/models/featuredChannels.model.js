@@ -9,6 +9,7 @@ var featuredChannels = function (data) {
   this.firstname = data.firstname;
   this.unique_link = data.unique_link;
   this.profile_pic_name = data.profile_pic_name;
+  this.description = data.description;
 };
 
 featuredChannels.getChannels = async function () {
@@ -62,6 +63,16 @@ featuredChannels.searchAllData = async (search) => {
   const posts = await executeQuery(query1);
   //console.log(channels, posts);
   return { channels, posts };
+};
+
+featuredChannels.getCategory = async () => {
+  const query = "select * from category";
+  console.log("q", query);
+  const categories = await executeQuery(query);
+  console.log(categories);
+  if (categories) {
+    return categories;
+  }
 };
 
 featuredChannels.getChannelById = async function (name) {

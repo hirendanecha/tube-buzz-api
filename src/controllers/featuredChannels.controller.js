@@ -36,6 +36,14 @@ exports.searchAllData = async (req, res) => {
   return res.send(searchData);
 };
 
+exports.getCategories = async (req, res) => {
+  console.log("In");
+  const categoryList = await featuredChannels.getCategory();
+  if (categoryList) {
+    return res.send(categoryList);
+  }
+};
+
 exports.findChannelById = async function (req, res) {
   if (req.params.id) {
     const channels = await featuredChannels.findChannelById(req.params.id);
