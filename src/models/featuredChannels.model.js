@@ -79,9 +79,14 @@ featuredChannels.getChannelById = async function (name) {
   const query =
     "select * from featured_channels where profileid = ? or unique_link = ?";
   const value = [name, name];
-  const channels = await executeQuery(query, value);
-  console.log(channels);
+  const [channels] = await executeQuery(query, value);
   if (channels) {
+    const query3 = `select count(Id) as subscribers from subscribe_channel where SubscribeChannelId = ?`;
+    const query4 = `select count(id) as videoCount from posts where channelId = ?`;
+    const [subscribers] = await executeQuery(query3, channels.id);
+    const [posts] = await executeQuery(query4, channels.id);
+    channels.subscribers = subscribers.subscribers;
+    channels.videoCount = posts.videoCount;
     return channels;
   }
 };
@@ -92,10 +97,13 @@ featuredChannels.findChannelById = async function (id) {
   const query2 =
     "select ca.*,p.Username, p.ProfilePicName,p.FirstName,p.LastName,p.CoverPicName,u.Email,p.UserID from channelAdmins as ca left join profile as p on p.ID = ca.profileId left join users as u on u.Id = p.UserID  where ca.channelId = ?;";
   const values = [id];
+  const query3 = `select count(Id) as subscribers from subscribe_channel where SubscribeChannelId = ?`;
   const channel = await executeQuery(query1, values);
   const members = await executeQuery(query2, values);
+  const [subscribers] = await executeQuery(query3, values);
   channel.map((e) => {
     e.memberList = members;
+    e.subscribers = subscribers.subscribers;
     return e;
   });
   return channel;
@@ -232,7 +240,7 @@ featuredChannels.getChannelVideos = async function (channelId, limit, offset) {
 
 featuredChannels.getVideos = async function (channelId, limit, offset) {
   const whereCondition = channelId
-    ? `p.posttype = 'V' and p.streamname is not null and p.channelId != ${channelId}`
+    ? `p.posttype = 'V' and p.streamname is not null and p.channelId = ${channelId}`
     : "p.posttype = 'V' and p.streamname is not null and p.channelId is not null";
   const searchCount = await executeQuery(
     `SELECT count(id) as count FROM posts as p WHERE ${whereCondition}`
