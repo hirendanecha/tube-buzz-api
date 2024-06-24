@@ -50,7 +50,7 @@ exports.removeByProfileIdAndSeeFirstId = async (req, res) => {
     if (data) {
       return res.json({
         error: false,
-        message: "See first user Removed",
+        message: "channel unsubscribe successfully",
         data: data,
       });
     }
