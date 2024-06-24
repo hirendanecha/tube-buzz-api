@@ -8,7 +8,7 @@ router.use(authorize.authorization);
 router.post("/create", seeFirstUserController.create);
 router.delete("/remove/:id", seeFirstUserController.remove);
 router.delete(
-  "/remove/:profileId/:seeFirstProfileId",
+  "/remove/:profileId/:subscribeChannelId",
   seeFirstUserController.removeByProfileIdAndSeeFirstId
 );
 router.get("/getByProfileId/:profileId", seeFirstUserController.getByProfileId);

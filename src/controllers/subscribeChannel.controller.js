@@ -41,7 +41,7 @@ exports.remove = async (req, res) => {
 exports.removeByProfileIdAndSeeFirstId = async (req, res) => {
   try {
     const profileId = req.params.profileId;
-    const SubscribeChannelId = req.params.SubscribeChannelId;
+    const SubscribeChannelId = req.params.subscribeChannelId;
     const data = await subscribeChannel.removeByProfileIdAndSubscribeChannelId(
       profileId,
       SubscribeChannelId
