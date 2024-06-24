@@ -68,14 +68,30 @@ exports.getUsersByUsername = async function (req, res) {
 };
 
 exports.getChannelById = async function (req, res) {
-  const name = req.params.name;
-  console.log(name);
-  const data = await featuredChannels.getChannelById(name);
-  if (data) {
-    res.send({ data });
-  } else {
-    utils.send404(res, (err = { message: "data not found" }));
+  try {
+    const name = req.params.name;
+    const profileId = req.query.profileId;
+    const data = await featuredChannels.getChannelById(name);
+    if (data) {
+      if (profileId) {
+        const isSubscribed = await findSubscribers(profileId, data.id);
+        console.log(isSubscribed);
+        data.isSubscribed = isSubscribed;
+      }
+      res.send({ data });
+    } else {
+      utils.send404(res, (err = { message: "data not found" }));
+    }
+  } catch (error) {
+    return utils.send500(res, error);
   }
+};
+
+const findSubscribers = async (profileId, channelId) => {
+  const query = `select count(Id) as subscribers from subscribe_channel where ProfileId = ${profileId} and SubscribeChannelId = ${channelId}`;
+  const [subscribers] = await utils.executeQuery(query);
+  const isSubscribed = subscribers.subscribers > 0 ? true : false;
+  return isSubscribed;
 };
 exports.getChannelByUserId = async function (req, res) {
   const id = req.params.id;

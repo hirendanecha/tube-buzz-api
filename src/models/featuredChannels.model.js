@@ -76,9 +76,8 @@ featuredChannels.getCategory = async () => {
 };
 
 featuredChannels.getChannelById = async function (name) {
-  const query =
-    "select * from featured_channels where profileid = ? or unique_link = ?";
-  const value = [name, name];
+  const query = "select * from featured_channels where unique_link = ?";
+  const value = [name];
   const [channels] = await executeQuery(query, value);
   if (channels) {
     const query3 = `select count(Id) as subscribers from subscribe_channel where SubscribeChannelId = ?`;
