@@ -251,7 +251,7 @@ featuredChannels.getVideos = async function (limit, offset, profileId) {
   const orderBy = `order by p.channelId in (SELECT SubscribeChannelId from subscribe_channel where ProfileId= ${profileId}) and`;
   const query = `select p.*,fc.firstname,fc.unique_link,fc.profile_pic_name,fc.created from posts as p left join featured_channels as fc on fc.id = p.channelId where ${whereCondition} ${
     profileId ? orderBy : ""
-  }  postdescription desc limit ? offset ? `;
+  } order by p.postdescription desc limit ? offset ? `;
   const values = [limit, offset];
   const posts = await executeQuery(query, values);
   if (posts) {
