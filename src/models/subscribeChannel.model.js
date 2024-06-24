@@ -3,7 +3,7 @@ require("../common/common")();
 
 class subscribeChannel {
   constructor(data) {
-    this.ProfileId = data.profileId;
+    this.ProfileId = data.ProfileId;
     this.SubscribeChannelId = data.SubscribeChannelId;
   }
 
