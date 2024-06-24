@@ -220,7 +220,7 @@ featuredChannels.editChannel = async function (data, id) {
 };
 
 featuredChannels.getChannelVideos = async function (id, limit, offset) {
-  const whereCondition = `p.posttype = 'V' and p.streamname is not null and p.profileid = ${id} and p.channelId is not null`;
+  const whereCondition = `p.posttype = 'V' and p.streamname is not null and p.channelId = ${id} `;
   const searchCount = await executeQuery(
     `SELECT count(id) as count FROM posts as p WHERE ${whereCondition}`
   );
