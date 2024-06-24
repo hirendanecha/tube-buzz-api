@@ -99,6 +99,7 @@ const createNewPost = async function (data) {
     textpostdesc: data?.textpostdesc || null,
     parentPostId: data?.parentPostId || null,
     posttoprofileid: data?.posttoprofileid || null,
+    categoryName: data?.categoryName || null,
   };
   postData.isdeleted = "N";
 
