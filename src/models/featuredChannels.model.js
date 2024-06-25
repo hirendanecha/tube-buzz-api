@@ -171,6 +171,27 @@ featuredChannels.getPostDetails = async function (id) {
   }
 };
 
+featuredChannels.getPostByCategory = async function (category, limit, offset) {
+  const query = `select p.*,fc.firstname,fc.unique_link,fc.profile_pic_name,fc.created,fc.id as channelId from posts as p left join featured_channels as fc on fc.id = p.channelId where ${
+    category === "featuredVideos"
+      ? `p.categoryName is NULL `
+      : `p.categoryName = '${category}'`
+  } limit ? offset ?`;
+  const values = [limit, offset];
+  const posts = await executeQuery(query, values);
+  console.log(category, limit, offset, query);
+  const searchCount = await executeQuery(
+    `SELECT count(p.id) as count FROM posts as p WHERE p.categoryName = '${category}'`
+  );
+  console.log(posts);
+  if (posts) {
+    return {
+      count: searchCount?.[0]?.count || 0,
+      data: posts,
+    };
+  }
+};
+
 featuredChannels.approveChannels = async function (id, feature) {
   const query = "update featured_channels set feature = ? where id =?";
   const values = [feature, id];
@@ -249,15 +270,32 @@ featuredChannels.getVideos = async function (limit, offset, profileId) {
     `SELECT count(id) as count FROM posts as p WHERE ${whereCondition}`
   );
   const orderBy = `order by p.channelId in (SELECT SubscribeChannelId from subscribe_channel where ProfileId= ${profileId}) and p.postdescription desc`;
-  const query = `select p.*,fc.firstname,fc.unique_link,fc.profile_pic_name,fc.created from posts as p left join featured_channels as fc on fc.id = p.channelId where ${whereCondition} ${
+  const query = `select p.*,fc.firstname,fc.unique_link,fc.profile_pic_name,fc.created from posts as p left join featured_channels as fc on fc.id = p.channelId left join category as c on c.categoryName = p.categoryName where ${whereCondition} ${
     profileId ? orderBy : "order by p.postdescription desc"
-  }  limit ? offset ? `;
+  } limit ? offset ? `;
   const values = [limit, offset];
   const posts = await executeQuery(query, values);
   if (posts) {
+    const postList = posts.reduce((acc, post) => {
+      const { categoryName } = post;
+      const category =
+        categoryName === null || categoryName.trim() === ""
+          ? "featuredVideos"
+          : categoryName.toLowerCase();
+
+      if (!acc[category]) {
+        acc[category] = [];
+      }
+
+      if (acc[category].length < 8) {
+        acc[category].push(post);
+      }
+
+      return acc;
+    }, {});
     return {
       count: searchCount?.[0]?.count || 0,
-      data: posts,
+      data: postList,
     };
   }
 };

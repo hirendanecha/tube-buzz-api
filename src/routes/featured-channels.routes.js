@@ -10,6 +10,7 @@ router.post("/my-posts", featuredChannels.getChannelVideos);
 router.get("/get-category", featuredChannels.getCategories);
 router.get("/get/:id", featuredChannels.findChannelById);
 router.get("/my-channel/:id", featuredChannels.getChannelByUserId);
+router.get("/posts/:category", featuredChannels.getPostByCategory);
 router.get("/post/:id", featuredChannels.getPostDetails);
 router.get("/:name", featuredChannels.getChannelById);
 router.use(authorize.authorization);

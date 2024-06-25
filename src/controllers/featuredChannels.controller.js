@@ -130,6 +130,25 @@ exports.getPostDetails = async function (req, res) {
   }
 };
 
+exports.getPostByCategory = async function (req, res) {
+  const { category } = req.params;
+  const { page, size } = req.query;
+  const { limit, offset } = getPagination(page, size);
+  console.log(category);
+  const posts = await featuredChannels.getPostByCategory(
+    category,
+    limit,
+    offset
+  );
+  if (posts.data) {
+    res.send(
+      getPaginationData({ count: posts.count, docs: posts.data }, page, limit)
+    );
+  } else {
+    utils.send404(res, (err = { message: "data not found" }));
+  }
+};
+
 exports.channelsApprove = async function (req, res) {
   const { id, feature } = req.query;
   console.log(id, feature);
