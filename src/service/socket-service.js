@@ -112,13 +112,6 @@ const createNewPost = async function (data) {
 
   const notifications = [];
   if (post) {
-    if (post?.insertId) {
-      await UserRewardDetails.create({
-        ProfileID: postData?.profileid,
-        PostID: post?.insertId,
-        ActionType: "P",
-      });
-    }
 
     if (data?.tags?.length > 0) {
       for (const key in data?.tags) {
@@ -176,13 +169,6 @@ const likeFeedPost = async function (params) {
     const values1 = [data];
     const post = await executeQuery(query, values);
     const likeData = await executeQuery(query1, values1);
-    if (likeData) {
-      await UserRewardDetails.create({
-        ProfileID: profileId,
-        PostID: postId,
-        ActionType: "L",
-      });
-    }
     const query3 = `SELECT p.*, pr.ProfilePicName, pr.Username, pr.FirstName from posts as p left join profile as pr on p.profileid = pr.ID where p.id=?`;
     const values3 = [postId];
     const posts = await executeQuery(query3, values3);
@@ -357,12 +343,6 @@ const createComments = async function (params) {
     "select c.*,pr.ProfilePicName, pr.Username, pr.FirstName from comments as c left join profile as pr on pr.ID = c.profileId where c.id = ?";
   const value3 = [params?.id || commentData.insertId];
   const comments = await executeQuery(query3, value3);
-
-  await UserRewardDetails.create({
-    ProfileID: data?.profileId,
-    PostID: data.postId,
-    ActionType: "C",
-  });
 
   return { notifications, comments };
 };
