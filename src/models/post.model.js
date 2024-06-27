@@ -240,7 +240,7 @@ Post.getPostComments = async function (profileId, postId) {
     })`;
     const values = [profileId];
     const replyCommnetsList = await executeQuery(query, values);
-    const countQuery = `select count(id) as count from comments where postId = ${postId} `;
+    const countQuery = `select count(id) as count from comments where postId = '${postId}'`;
     const [{ count }] = await executeQuery(countQuery);
     console.log(count, "comments count");
 

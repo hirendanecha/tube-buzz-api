@@ -104,19 +104,24 @@ exports.getChannelByUserId = async function (req, res) {
   }
 };
 
-exports.CreateSubAdmin = function (req, res) {
-  const data = { ...req.body };
-  featuredChannels.CreateSubAdmin(data, function (err, result) {
-    if (err) {
-      console.log(err);
-      return utils.send500(res, err);
+exports.CreateSubAdmin = async function (req, res) {
+  try {
+    const data = { ...req.body };
+    const adminData = await featuredChannels.CreateSubAdmin(data);
+    if (adminData) {
+      return res.json({
+        error: false,
+        data: adminData,
+      });
     } else {
       return res.json({
         error: false,
-        data: result,
+        message: "Already assigned",
       });
     }
-  });
+  } catch (error) {
+    return utils.send500(res, error);
+  }
 };
 
 exports.getPostDetails = async function (req, res) {
@@ -289,7 +294,6 @@ exports.updateChannleFeature = function (req, res) {
       if (err) {
         return utils.send500(err, null);
       } else {
-        console.log(result);
         if (feature === "Y") {
           res.json({
             error: false,

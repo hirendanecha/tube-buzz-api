@@ -149,15 +149,12 @@ featuredChannels.CreateSubAdmin = async function (data, result) {
     //   Email: user[0].Email,
     // };
     // await channelNotificationEmail(userData);
-    db.query("insert into channelAdmins set ?", data, function (err, res) {
-      if (err) {
-        result(err, null);
-      } else {
-        result(null, res.insertId);
-      }
-    });
+    const query = "insert into channelAdmins set ?";
+    const values = [data];
+    const admin = await executeQuery(query, values);
+    return admin;
   } else {
-    result("Already assigned", null);
+    return;
   }
 };
 featuredChannels.getPostDetails = async function (id) {
