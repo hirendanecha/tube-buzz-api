@@ -261,35 +261,87 @@ featuredChannels.getChannelVideos = async function (
 };
 
 featuredChannels.getVideos = async function (limit, offset, profileId) {
+  // const whereCondition =
+  //   "p.posttype = 'V' and p.streamname is not null and p.channelId is not null";
+  // const searchCount = await executeQuery(
+  //   `SELECT count(id) as count FROM posts as p WHERE ${whereCondition}`
+  // );
+  // const orderBy = `order by p.channelId in (SELECT SubscribeChannelId from subscribe_channel where ProfileId= ${profileId}) and p.postdescription desc`;
+  // const query = `select p.*,fc.firstname,fc.unique_link,fc.profile_pic_name,fc.created from posts as p left join featured_channels as fc on fc.id = p.channelId left join category as c on c.categoryName = p.categoryName where ${whereCondition} ${
+  //   profileId ? orderBy : "order by p.postdescription desc"
+  // } limit ? offset ? `;
+  // const values = [limit, offset];
+  // const posts = await executeQuery(query, values);
+  // if (posts) {
+  //   const postList = posts.reduce((acc, post) => {
+  //     const { categoryName } = post;
+  //     const category =
+  //       categoryName === null || categoryName.trim() === ""
+  //         ? "featuredVideos"
+  //         : categoryName.toLowerCase();
+
+  //     if (!acc[category]) {
+  //       acc[category] = [];
+  //     }
+
+  //     if (acc[category].length < 8) {
+  //       acc[category].push(post);
+  //     }
+
+  //     return acc;
+  //   }, {});
+  //   return {
+  //     count: searchCount?.[0]?.count || 0,
+  //     data: postList,
+  //   };
+  // }
+
   const whereCondition =
     "p.posttype = 'V' and p.streamname is not null and p.channelId is not null";
   const searchCount = await executeQuery(
     `SELECT count(id) as count FROM posts as p WHERE ${whereCondition}`
   );
+
   const orderBy = `order by p.channelId in (SELECT SubscribeChannelId from subscribe_channel where ProfileId= ${profileId}) and p.postdescription desc`;
+
   const query = `select p.*,fc.firstname,fc.unique_link,fc.profile_pic_name,fc.created from posts as p left join featured_channels as fc on fc.id = p.channelId left join category as c on c.categoryName = p.categoryName where ${whereCondition} ${
     profileId ? orderBy : "order by p.postdescription desc"
   } limit ? offset ? `;
   const values = [limit, offset];
   const posts = await executeQuery(query, values);
+
   if (posts) {
     const postList = posts.reduce((acc, post) => {
-      const { categoryName } = post;
+      const { categoryName, created } = post;
       const category =
         categoryName === null || categoryName.trim() === ""
           ? "featuredVideos"
           : categoryName.toLowerCase();
 
+      // Add the post to its category
       if (!acc[category]) {
         acc[category] = [];
       }
-
       if (acc[category].length < 8) {
         acc[category].push(post);
       }
 
+      // Check if the post is recent and add to recentPosted category
+      const recentPosted = "recentPosted";
+      const isRecent =
+        new Date(created) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000); // Posts within the last 7 days
+      if (isRecent) {
+        if (!acc[recentPosted]) {
+          acc[recentPosted] = [];
+        }
+        if (acc[recentPosted].length < 8) {
+          acc[recentPosted].push(post);
+        }
+      }
+
       return acc;
     }, {});
+
     return {
       count: searchCount?.[0]?.count || 0,
       data: postList,

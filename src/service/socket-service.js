@@ -2,6 +2,7 @@ const { executeQuery } = require("../helpers/utils");
 const { notificationMail } = require("../helpers/utils");
 const { getPagination, getCount, getPaginationData } = require("../helpers/fn");
 const og = require("open-graph");
+const moment = require("moment");
 
 exports.getPost = async function (data) {
   return await getPost(data);
@@ -48,6 +49,14 @@ exports.getMeta = function (data) {
 
 exports.readNotification = function (data) {
   return readNotification(data);
+};
+
+exports.viewingHistory = function (data) {
+  return viewingHistory(data);
+};
+
+exports.getWatchHistory = function (data) {
+  return getWatchHistory(data);
 };
 
 const getPost = async function (params) {
@@ -112,7 +121,6 @@ const createNewPost = async function (data) {
 
   const notifications = [];
   if (post) {
-
     if (data?.tags?.length > 0) {
       for (const key in data?.tags) {
         if (Object.hasOwnProperty.call(data?.tags, key)) {
@@ -424,5 +432,54 @@ const getMetaD = async function (params) {
     return await ogPromise(url);
   } else {
     return null;
+  }
+};
+
+const viewingHistory = async function (data) {
+  try {
+    const { profileId, postId } = data;
+    const query1 = `select * from viewingHistory where profileId = ? and postId = ?`;
+    const values1 = [profileId, postId];
+    const result1 = await executeQuery(query1, values1);
+    if (result1.length) {
+      console.log("result1", result1.length);
+      const date = moment().format("YYYY-MM-DD HH:mm:ss");
+      console.log(date);
+      const query = `update viewingHistory set updatedDate = '${date}' where profileId = ? and postId = ?`;
+      const values = [profileId, postId];
+      const result = await executeQuery(query, values);
+      return result1;
+    } else {
+      const query = `INSERT INTO viewingHistory set ?`;
+      const values = [{ profileId, postId }];
+      const result = await executeQuery(query, values);
+      return result;
+    }
+  } catch (error) {
+    return error;
+  }
+};
+
+const getWatchHistory = async function (data) {
+  try {
+    console.log(data);
+    const { profileId, page, size } = data;
+    const { limit, offset } = getPagination(page, size);
+    const queryCount = `select count(p.id) as count from viewingHistory as v left join posts as p on p.id = v.postId where v.profileId = ${profileId}`;
+    const query = `select p.*, pr.ProfilePicName, pr.Username, pr.FirstName,fc.firstname,fc.unique_link,fc.profile_pic_name,fc.created from viewingHistory as v left join posts as p on p.id = v.postId left join profile as pr on p.profileid = pr.ID left join featured_channels as fc on fc.id = p.channelId where v.profileId = ? order by v.updatedDate desc limit ? offset ?`;
+    const values = [profileId, limit, offset];
+    const [videoCount] = await executeQuery(queryCount);
+    const result = await executeQuery(query, values);
+    if (result.length > 0) {
+      return getPaginationData(
+        { count: videoCount.count, docs: result },
+        page,
+        limit
+      );
+    } else {
+      return [];
+    }
+  } catch (error) {
+    return error;
   }
 };

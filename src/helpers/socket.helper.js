@@ -255,6 +255,33 @@ socket.config = (server) => {
         }
       }
     });
+
+    socket.on("add-watch-history", async (params) => {
+      logger.info("meta", {
+        method: "get Meta",
+        params: params,
+      });
+      if (params) {
+        const data = await socketService.viewingHistory(params);
+        if (data) {
+          // socket.emit("add-watch-history", data);
+          return data;
+        }
+      }
+    });
+    socket.on("watch-history", async (params, cb) => {
+      logger.info("meta", {
+        method: "watch history",
+        params: params,
+      });
+      if (params) {
+        const data = await socketService.getWatchHistory(params);
+        console.log(data);
+        if (data) {
+          return cb(data);
+        }
+      }
+    });
   });
 };
 
