@@ -138,6 +138,7 @@ socket.config = (server) => {
       if (params.actionType) {
         if (params.postId) {
           const data = await socketService.likeFeedPost(params);
+          console.log("likeOrDislike", data);
           io.emit("likeOrDislike", data.posts);
           const notification = await socketService.createNotification({
             notificationToProfileId: params.toProfileId,

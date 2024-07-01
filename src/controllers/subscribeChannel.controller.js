@@ -1,6 +1,6 @@
 const utils = require("../helpers/utils");
 const subscribeChannel = require("../models/subscribeChannel.model");
-
+const socketService = require("../service/socket-service");
 exports.create = async (req, res) => {
   try {
     if (Object.keys(req.body).length === 0) {
@@ -8,7 +8,16 @@ exports.create = async (req, res) => {
     } else {
       const reqBody = new subscribeChannel(req.body);
       const data = await subscribeChannel.create(reqBody);
+      const notificationData = {
+        notificationByProfileId: reqBody.ProfileId,
+        notificationToProfileId: req.body.channelUserProfileId,
+        actionType: "S",
+        channelId: reqBody.SubscribeChannelId,
+      };
 
+      const notification = await socketService.createNotification(
+        notificationData
+      );
       if (data) {
         return res.json({
           error: false,

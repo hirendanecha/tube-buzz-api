@@ -126,8 +126,9 @@ exports.CreateSubAdmin = async function (req, res) {
 
 exports.getPostDetails = async function (req, res) {
   const { id } = req.params;
+  const { profileId } = req.query;
   console.log(id);
-  const data = await featuredChannels.getPostDetails(id);
+  const data = await featuredChannels.getPostDetails(id, profileId);
   if (data) {
     res.send(data);
   } else {
