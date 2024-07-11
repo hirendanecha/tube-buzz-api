@@ -13,6 +13,10 @@ router.delete(
 );
 router.get("/getByProfileId/:profileId", seeFirstUserController.getByProfileId);
 router.get(
+  "/getSubscribedChannel/:profileId",
+  seeFirstUserController.getSubscribeChannelByProfileId
+);
+router.get(
   "/getSeeFirstIdByProfileId/:profileId",
   seeFirstUserController.getSubscribeChannelIdByProfileId
 );

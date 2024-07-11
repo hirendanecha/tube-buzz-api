@@ -16,7 +16,10 @@ class subscribeChannel {
       id,
     ]);
   }
-  static async removeByProfileIdAndSubscribeChannelId(profileId, SubscribeChannelId) {
+  static async removeByProfileIdAndSubscribeChannelId(
+    profileId,
+    SubscribeChannelId
+  ) {
     return await executeQuery(
       "DELETE FROM subscribe_channel WHERE ProfileId=? AND SubscribeChannelId=?;",
       [profileId, SubscribeChannelId]
@@ -36,6 +39,15 @@ class subscribeChannel {
     return (
       (await executeQuery(
         `SELECT SubscribeChannelId from subscribe_channel where profileId = ?`,
+        [profileId]
+      )) || []
+    );
+  }
+
+  static async getSubscribeChannelByProfileId(profileId) {
+    return (
+      (await executeQuery(
+        `SELECT c.* from subscribe_channel as sf_pr left join featured_channels as c on sf_pr.SubscribeChannelId = c.id where sf_pr.profileId = ?`,
         [profileId]
       )) || []
     );

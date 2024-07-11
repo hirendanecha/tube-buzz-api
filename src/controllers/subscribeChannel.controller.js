@@ -80,3 +80,9 @@ exports.getSubscribeChannelIdByProfileId = async (req, res) => {
   );
   return res.send(data);
 };
+
+exports.getSubscribeChannelByProfileId = async (req, res) => {
+  const profileId = req.params.profileId;
+  const data = await subscribeChannel.getSubscribeChannelByProfileId(profileId);
+  return res.send(data);
+};
