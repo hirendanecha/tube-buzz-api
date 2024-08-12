@@ -82,7 +82,13 @@ exports.getSubscribeChannelIdByProfileId = async (req, res) => {
 };
 
 exports.getSubscribeChannelByProfileId = async (req, res) => {
-  const profileId = req.params.profileId;
-  const data = await subscribeChannel.getSubscribeChannelByProfileId(profileId);
-  return res.send(data);
+  try {
+    const profileId = req.params.profileId;
+    const data = await subscribeChannel.getSubscribeChannelByProfileId(
+      profileId
+    );
+    return res.send(data);
+  } catch (error) {
+    return res.send(error.message);
+  }
 };

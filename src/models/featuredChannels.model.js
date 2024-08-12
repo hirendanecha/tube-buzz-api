@@ -351,8 +351,12 @@ featuredChannels.getVideos = async function (limit, offset, profileId) {
 
 featuredChannels.deleteChannel = async function (id) {
   const query = "delete from featured_channels where id = ?";
+  const query1 = `delete from subscribe_channel where SubscribeChannelId = ${id}`;
+  const query2 = `delete from posts where channelId = ${id}`;
   const value = [id];
   const channels = await executeQuery(query, value);
+  await executeQuery(query1, value);
+  await executeQuery(query2, value);
   if (channels) {
     return channels;
   }
