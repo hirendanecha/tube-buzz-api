@@ -74,32 +74,32 @@ Profile.FindById = async function (profileId) {
   //   }
   // );
   const query = `SELECT 
-            u.Email,
-            u.Username,
-            u.IsActive,
-            u.DateCreation,
-            u.IsAdmin,
-            u.FirstName,
-            u.LastName,
-            u.Address,
-            u.Country,
-            u.City,
-            u.State,
-            u.Zip,
-            u.IsSuspended,
-            u.AccountType,
-            p.ID as profileId,
-            p.UserID,
-            p.CoverPicName,
-            p.ProfilePicName,
-            p.MobileNo,
-            p.MediaApproved,
-            p.ChannelType,
-            p.DefaultUniqueLink,
-            p.UniqueLink,
-            p.AccountType,
-            p.userStatus
-     FROM users as u left join profile as p on p.UserID = u.Id Where p.ID = ?;`;
+  u.Email,
+  u.Username,
+  u.IsActive,
+  u.DateCreation,
+  u.IsAdmin,
+  u.FirstName,
+  u.LastName,
+  u.Address,
+  u.Country,
+  u.City,
+  u.State,
+  u.Zip,
+  u.IsSuspended,
+  u.AccountType,
+  p.ID as profileId,
+  p.UserID,
+  p.CoverPicName,
+  p.ProfilePicName,
+  p.MobileNo,
+  p.MediaApproved,
+  p.ChannelType,
+  p.DefaultUniqueLink,
+  p.UniqueLink,
+  p.AccountType,
+  p.userStatus
+FROM users as u left join profile as p on p.UserID = u.Id Where p.ID = ?;`;
   const values = profileId;
   let profile = await executeQuery(query, values);
   const query1 =
@@ -107,7 +107,6 @@ Profile.FindById = async function (profileId) {
   const value1 = [profile[0]?.UserID];
   const channelId = await executeQuery(query1, value1);
   profile[0]["channelId"] = channelId[0]?.channelId;
-  console.log("test", profile);
   return profile[0];
 };
 

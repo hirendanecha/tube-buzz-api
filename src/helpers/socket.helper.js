@@ -30,13 +30,16 @@ socket.config = (server) => {
         }
         socket.user = decoded.user;
         if (decoded.user.username !== "admin") {
-          const [profile] = await Profile.FindById(decoded.user.id);
+          const profile = await Profile.FindById(decoded.user.id);
           if (profile?.IsSuspended === "Y") {
             const err = new Error("user has been suspended");
             return next(err);
           }
         }
-        socket.join(`${socket.user?.id}`);
+        // Function to join existing rooms
+        if (socket.user.id) {
+          socket.join(`${socket.user?.id}`);
+        }
         next();
       });
     } catch (error) {
