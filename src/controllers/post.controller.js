@@ -2,6 +2,9 @@ const Post = require("../models/post.model");
 const utils = require("../helpers/utils");
 const s3 = require("../helpers/aws-s3.helper");
 const og = require("open-graph");
+const axios = require("axios");
+const environment = require("../environments/environment");
+
 exports.findAll = async function (req, res) {
   const postData = await Post.findAll(req.body);
   return res.send(postData);
@@ -10,6 +13,14 @@ exports.findAll = async function (req, res) {
 exports.getPostByProfileId = async function (req, res) {
   console.log(req.body);
   const postList = await Post.getPostByProfileId(req.body);
+  if (postList) {
+    res.send({ data: postList });
+  }
+};
+
+exports.getAllPosts = async function (req, res) {
+  console.log(req.body);
+  const postList = await Post.getAllPosts(req.body);
   if (postList) {
     res.send({ data: postList });
   }
@@ -114,11 +125,27 @@ exports.getMeta = function (req, res) {
 
 exports.deletePost = function (req, res) {
   if (req.params.id) {
-    const data = Post.delete(req.params.id);
+    const data = Post.deletePost(req.params.id);
     if (data) {
       res.send({
         error: false,
-        message: "Post deleted sucessfully",
+        message: "Post deleted successfully",
+      });
+    } else {
+      return utils.send500(res, err);
+    }
+  } else {
+    return utils.send404(res, err);
+  }
+};
+exports.hidePost = function (req, res) {
+  if (req.params.id) {
+    const isDeleted = req.query.isDeleted;
+    const data = Post.hidePost(req.params.id, isDeleted);
+    if (data) {
+      res.send({
+        error: false,
+        message: "Post hide successfully",
       });
     } else {
       return utils.send500(res, err);

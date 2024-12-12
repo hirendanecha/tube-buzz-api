@@ -59,6 +59,10 @@ exports.getWatchHistory = function (data) {
   return getWatchHistory(data);
 };
 
+exports.suspendUser = function (data) {
+  return suspendUser(data);
+};
+
 const getPost = async function (params) {
   const { page, size, profileId } = params;
   const { limit, offset } = getPagination(page, size);
@@ -121,6 +125,14 @@ const createNewPost = async function (data) {
 
   const notifications = [];
   if (post) {
+    if (post?.insertId) {
+      await UserRewardDetails.create({
+        ProfileID: postData?.profileid,
+        PostID: post?.insertId,
+        ActionType: "P",
+      });
+    }
+
     if (data?.tags?.length > 0) {
       for (const key in data?.tags) {
         if (Object.hasOwnProperty.call(data?.tags, key)) {
@@ -177,6 +189,13 @@ const likeFeedPost = async function (params) {
     const values1 = [data];
     const post = await executeQuery(query, values);
     const likeData = await executeQuery(query1, values1);
+    if (likeData) {
+      await UserRewardDetails.create({
+        ProfileID: profileId,
+        PostID: postId,
+        ActionType: "L",
+      });
+    }
     const query3 = `SELECT p.*, pr.ProfilePicName, pr.Username, pr.FirstName from posts as p left join profile as pr on p.profileid = pr.ID where p.id=?`;
     const values3 = [postId];
     const posts = await executeQuery(query3, values3);
@@ -191,14 +210,12 @@ const disLikeFeedPost = async function (params) {
     const query1 = `delete from postlikedislike where PostID = ? AND ProfileID = ?`;
     const values = [likeCount, postId];
     const values1 = [postId, profileId];
-    const post = await executeQuery(query, values);
-    const likeData = await executeQuery(query1, values1);
+    await executeQuery(query, values);
+    await executeQuery(query1, values1);
     const query3 = `SELECT p.*, pr.ProfilePicName, pr.Username, pr.FirstName from posts as p left join profile as pr on p.profileid = pr.ID where p.id=?`;
     const values3 = [postId];
     const posts = await executeQuery(query3, values3);
     return { posts };
-    // const postData = await getPost({ profileId: profileId, page: 1, size: 15 });
-    // return postData;
   }
 };
 
@@ -215,6 +232,9 @@ const createNotification = async function (params) {
     "SELECT ID,ProfilePicName, Username, FirstName,LastName from profile where ID = ?";
   const values = [notificationByProfileId];
   const userData = await executeQuery(query, values);
+  if (!userData[0]) {
+    return;
+  }
   let desc = "";
   if (channelId) {
     desc = `${
@@ -252,7 +272,6 @@ const createNotification = async function (params) {
     notificationByProfileId: Number(notificationByProfileId),
     actionType: actionType,
     notificationDesc: desc,
-    channelId: channelId,
   };
   if (data.notificationByProfileId === data.notificationToProfileId) {
     return true;
@@ -329,27 +348,37 @@ const createComments = async function (params) {
             commentId: params?.id || commentData.insertId,
           });
           console.log("notification", notification);
-          const findUser = `select u.Email,p.FirstName,p.LastName,p.Username from users as u left join profile as p on p.UserID = u.Id where p.ID = ?`;
+          const findUser = `select u.Email,p.FirstName,p.LastName,p.Username from users as u left join profile as p on p.UserID = u.Id where p.postNotificationEmail = 'Y' and p.ID = ?`;
           const values = [tag?.id];
           const userData = await executeQuery(findUser, values);
-          const findSenderUser = `select p.ID,p.Username,p.FirstName,p.LastName from profile as p where p.ID = ?`;
-          const values1 = [data?.profileId];
-          const senderData = await executeQuery(findSenderUser, values1);
-          notifications.push(notification);
-          if (tag?.id) {
-            const userDetails = {
-              email: userData[0].Email,
-              profileId: senderData[0].ID,
-              userName: userData[0].Username,
-              firstName: userData[0].FirstName,
-              senderUsername: senderData[0].Username,
-              type: "comment",
-              postId: notification?.postId || postData?.id,
-            };
-            await notificationMail(userDetails);
+          if (userData?.length) {
+            const findSenderUser = `select p.ID,p.Username,p.FirstName,p.LastName from profile as p where p.ID = ?`;
+            const values1 = [data?.profileId];
+            const senderData = await executeQuery(findSenderUser, values1);
+            notifications.push(notification);
+            if (tag?.id) {
+              const userDetails = {
+                email: userData[0].Email,
+                profileId: senderData[0].ID,
+                userName: userData[0].Username,
+                firstName: userData[0].FirstName,
+                senderUsername: senderData[0].Username,
+                type: "comment",
+                postId: notification?.postId || postData?.id,
+              };
+              await notificationMail(userDetails);
+            }
           }
         }
       }
+    } else {
+      notification = await createNotification({
+        notificationToProfileId: posts[0].profileid,
+        postId: data.postId,
+        notificationByProfileId: data?.profileId,
+        actionType: "C",
+        commentId: params?.id || commentData.insertId,
+      });
     }
   }
   notifications.push(notification);
@@ -485,6 +514,17 @@ const getWatchHistory = async function (data) {
     } else {
       return [];
     }
+  } catch (error) {
+    return error;
+  }
+};
+
+const suspendUser = async function (params) {
+  try {
+    const query = "UPDATE users SET IsSuspended = ? WHERE Id= ?";
+    const values = [params.isSuspended, params.id];
+    const user = await executeQuery(query, values);
+    return user;
   } catch (error) {
     return error;
   }

@@ -8,6 +8,7 @@ const authorize = require("../middleware/authorize");
 
 const { getPagination, getCount, getPaginationData } = require("../helpers/fn");
 const { Encrypt } = require("../helpers/cryptography");
+const Profile = require("../models/profile.model");
 
 exports.login = async function (req, res) {
   console.log("jkfhguysdhfgbdf");
@@ -31,12 +32,12 @@ exports.login = async function (req, res) {
           }
           return res.status(400).send({ error: true, message: err });
         } else {
-          res.cookie("auth-user", token, {
-            // expire: new Date(Date.now() + 900000),
-            secure: true,
-            sameSite: "none",
-            domain: environments.domain,
-          });
+          // res.cookie("auth-user", token, {
+          //   // expire: new Date(Date.now() + 900000),
+          //   secure: true,
+          //   sameSite: "none",
+          //   domain: environments.domain,
+          // });
           return res.json(token);
         }
       });
@@ -82,18 +83,22 @@ exports.login = async function (req, res) {
   }
 };
 exports.getToken = async function (req, res) {
-  const data = req?.cookies;
-  console.log(data["auth-user"]);
-  if (data) {
-    const token = data["auth-user"];
+  try {
+    const [user] = await Profile.FindById(req.user.id);
+    console.log("user", user);
 
-    if (token) {
-      return res.json(token);
+    if (user) {
+      if (user.IsSuspended === "Y") {
+        return res.status(401).json({ message: "user suspended", data: {} });
+      }
+      // const data = req?.cookies;
+      // const token = data["auth-user"];
+      return res.json(user);
     } else {
-      return res.status(400).json({ message: "" });
+      return res.status(404).json({ message: "user not found", data: {} });
     }
-  } else {
-    return res.status(400).json({ message: "" });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
   }
 };
 
@@ -434,7 +439,7 @@ exports.verification = function (req, res) {
         return res.redirect(
           `${
             environments.FRONTEND_URL
-          }user/verification-expired?user=${encodeURIComponent(data.email)}`
+          }/user/verification-expired?user=${encodeURIComponent(data.email)}`
         );
       }
       return utils.send500(res, err);
@@ -443,7 +448,7 @@ exports.verification = function (req, res) {
     // if (data.IsAdmin === "Y") {
     //   return res.redirect(`${environments.ADMIN_URL}/auth/partner-login`);
     // }
-    return res.redirect(`${environments.FRONTEND_URL}login?isVerify=true`);
+    return res.redirect(`${environments.FRONTEND_URL}/login?isVerify=true`);
   });
 };
 
@@ -470,11 +475,11 @@ exports.logout = function (req, res) {
   console.log("innn==>");
   const token = req.headers.authorization.split(" ")[1];
   authorize.setTokenInList(token);
-  res.clearCookie("auth-user", {
-    sameSite: "none",
-    secure: true,
-    domain: environments.domain,
-  });
+  // res.clearCookie("auth-user", {
+  //   sameSite: "none",
+  //   secure: true,
+  //   domain: environments.domain,
+  // });
   // res.cookie("auth-user", 'Hello', {
   //   expire: new Date(Date.now() - 900000),
   //   secure: true,
@@ -488,8 +493,19 @@ exports.verifyToken = async function (req, res) {
   try {
     const token = req.params.token;
     const decoded = jwt.verify(token, environments.JWT_SECRET_KEY);
+    console.log(decoded.user);
+
     if (decoded.user) {
-      res.status(200).send({ message: "Authorized User", verifiedToken: true });
+      const [profile] = await Profile.FindById(decoded.user.id);
+      if (profile?.IsSuspended === "Y") {
+        res
+          .status(401)
+          .send({ message: "user has been suspended", verifiedToken: false });
+      } else {
+        res
+          .status(200)
+          .send({ message: "Authorized User", verifiedToken: true });
+      }
     } else {
       res
         .status(401)

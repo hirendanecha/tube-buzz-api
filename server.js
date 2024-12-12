@@ -8,7 +8,6 @@ var indexRouter = require("./src/routes");
 const app = express();
 (fs = require("fs")), (helmet = require("helmet"));
 
-var originsWhitelist = ["*"];
 app.use(
   cors({
     origin: true,

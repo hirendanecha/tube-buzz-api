@@ -2,6 +2,7 @@ let logger = console;
 const socket = {};
 const socketService = require("../service/socket-service");
 const environment = require("../environments/environment");
+const Profile = require("../models/profile.model");
 const jwt = require("jsonwebtoken");
 
 socket.config = (server) => {
@@ -28,6 +29,13 @@ socket.config = (server) => {
           return next(err);
         }
         socket.user = decoded.user;
+        if (decoded.user.username !== "admin") {
+          const [profile] = await Profile.FindById(decoded.user.id);
+          if (profile?.IsSuspended === "Y") {
+            const err = new Error("user has been suspended");
+            return next(err);
+          }
+        }
         socket.join(`${socket.user?.id}`);
         next();
       });
@@ -138,7 +146,6 @@ socket.config = (server) => {
       if (params.actionType) {
         if (params.postId) {
           const data = await socketService.likeFeedPost(params);
-          console.log("likeOrDislike", data);
           io.emit("likeOrDislike", data.posts);
           const notification = await socketService.createNotification({
             notificationToProfileId: params.toProfileId,
@@ -223,7 +230,7 @@ socket.config = (server) => {
       });
       if (params.id) {
         const data = await socketService.deletePost(params);
-        io.emit("deletePost", data);
+        io.emit("deleted-post", { id: params.id });
       }
     });
 

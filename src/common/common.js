@@ -11,6 +11,6 @@ module.exports = function () {
       },
     };
 
-    return jwt.sign(payload, env.JWT_SECRET_KEY, { expiresIn: "15d" });
+    return jwt.sign(payload, env.JWT_SECRET_KEY);
   };
 };

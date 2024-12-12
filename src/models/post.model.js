@@ -74,7 +74,7 @@ Post.findAll = async function (params) {
 };
 
 Post.getPostByProfileId = async function (params) {
-  const { page, size, profileId, startDate, endDate } = params;
+  const { page, size, profileId, startDate, endDate, searchText } = params;
   const { limit, offset } = getPagination(page, size);
   let whereCondition = "";
   if (startDate && endDate) {
@@ -85,7 +85,10 @@ Post.getPostByProfileId = async function (params) {
   } else if (endDate) {
     whereCondition += `AND p.postcreationdate <= '${endDate}'`;
   }
-  const query = `SELECT p.*, pr.ProfilePicName, pr.Username, pr.FirstName,groupPr.FirstName as groupName, groupPr.UniqueLink as groupLink from posts as p left join profile as pr on p.profileid = pr.ID left join profile as groupPr on p.posttoprofileid = groupPr.ID where p.isdeleted ='N' and p.profileid =? and p.posttype in ('S', 'R','V') ${whereCondition} order by p.postcreationdate DESC limit ? offset ?;`;
+  if (searchText) {
+    whereCondition += `AND p.postdescription LIKE '%${searchText}%'`;
+  }
+  const query = `SELECT p.*, pr.ProfilePicName, pr.Username, pr.FirstName,groupPr.FirstName as groupName, groupPr.UniqueLink as groupLink,c.CommunityName as communityName, c.slug as slug,c.pageType from posts as p left join profile as pr on p.profileid = pr.ID left join profile as groupPr on p.posttoprofileid = groupPr.ID left join community as c on p.communityId = c.id where p.profileid =? and p.posttype in ('S', 'R','V') ${whereCondition} order by p.postcreationdate DESC limit ? offset ?;`;
   const values = [profileId, limit, offset];
   const postData = await executeQuery(query, values);
   // return postData;
@@ -98,12 +101,41 @@ Post.getPostByProfileId = async function (params) {
     limit
   );
 };
+
+Post.getAllPosts = async function (params) {
+  const { page, size, startDate, endDate } = params;
+  const { limit, offset } = getPagination(page, size);
+  let whereCondition = "";
+  if (startDate && endDate) {
+    whereCondition += `AND p.postcreationdate >= '${startDate}' AND p.postcreationdate <= '${endDate}'`;
+    console.log(whereCondition);
+  } else if (startDate) {
+    whereCondition += `AND p.postcreationdate >= '${startDate}'`;
+  } else if (endDate) {
+    whereCondition += `AND p.postcreationdate <= '${endDate}'`;
+  }
+  const query = `SELECT p.*, pr.ProfilePicName, pr.Username, pr.FirstName,groupPr.FirstName as groupName, groupPr.UniqueLink as groupLink, c.CommunityName as communityName, c.slug as slug,c.pageType from posts as p left join profile as pr on p.profileid = pr.ID left join profile as groupPr on p.posttoprofileid = groupPr.ID left join community as c on p.communityId = c.id where p.posttype in ('S', 'R','V') ${whereCondition} order by p.postcreationdate DESC limit ? offset ?;`;
+  const values = [limit, offset];
+  const postData = await executeQuery(query, values);
+  const postCount = await executeQuery("select count(id) as count from posts");
+  console.log(postCount);
+  // return postData;
+  return getPaginationData(
+    {
+      count: postCount[0].count,
+      docs: postData,
+    },
+    page,
+    limit
+  );
+};
+
 Post.getPostByPostId = function (profileId, result) {
   db.query(
     // "SELECT * from posts where isdeleted ='N' order by postcreationdate DESC limit 15 ",
-    "SELECT p.*, pr.ProfilePicName, pr.Username, pr.FirstName,groupPr.FirstName as groupName, groupPr.UniqueLink as groupLink from posts as p left join profile as pr on p.profileid = pr.ID left join profile as groupPr on p.posttoprofileid = groupPr.ID where p.isdeleted ='N' and p.id =? ;",
+    "SELECT p.*, pr.ProfilePicName, pr.Username, pr.FirstName,groupPr.FirstName as groupName, groupPr.UniqueLink as groupLink, c.CommunityName as communityName, c.slug as slug,c.pageType,c.logoImg,c.coverImg from posts as p left join profile as pr on p.profileid = pr.ID left join profile as groupPr on p.posttoprofileid = groupPr.ID left join community as c on p.communityId = c.id where p.isdeleted ='N' and p.id =? ;",
     profileId,
-    function (err, res) {
+    async function (err, res) {
       if (err) {
         console.log("error", err);
         result(err, null);
@@ -115,17 +147,26 @@ Post.getPostByPostId = function (profileId, result) {
   );
 };
 
-Post.getPdfsFile = function (profileId, result) {
+Post.getPdfsFile = async function (profileId, result) {
   db.query(
-    // "SELECT * from posts where isdeleted ='N' order by postcreationdate DESC limit 15 ",
-    "SELECT p.*, pr.ProfilePicName, pr.Username, pr.FirstName from posts as p left join profile as pr on p.profileid = pr.ID where p.isdeleted ='N' and p.pdfUrl is not null and p.profileid =? order by p.postcreationdate desc;",
+    `SELECT p.*, 
+       pr.ProfilePicName, 
+       pr.Username, 
+       pr.FirstName
+      FROM posts AS p 
+      LEFT JOIN profile AS pr ON p.profileid = pr.ID 
+      WHERE p.isdeleted = 'N' 
+      AND p.pdfUrl IS NOT NULL 
+      AND p.profileid = ? 
+      ORDER BY p.postcreationdate DESC;`,
+    // LEFT JOIN post_media AS pm ON pm.postId = p.id
     +profileId,
     function (err, res) {
       if (err) {
         console.log("error", err);
         result(err, null);
       } else {
-        // console.log("post: ", res);
+        console.log("post: ", res);
         result(null, res);
       }
     }
@@ -177,33 +218,33 @@ Post.create = async function (postData) {
   return post;
 };
 
-Post.delete = async function (id) {
-  // db.query("DELETE FROM posts WHERE id = ?", [id], function (err, res) {
-  //   if (err) {
-  //     console.log("error", err);
-  //     result(err, null);
-  //   } else {
-  //     console.log("Post deleted sucessfully", res);
-  //     result(null, res);
-  //   }
-  // });
-  const query = "DELETE FROM posts WHERE id = ?";
-  const query1 = "DELETE FROM comments WHERE postId = ?";
+Post.hidePost = async function (id, isDeleted) {
+  const query = `update posts set isdeleted = '${isDeleted}' WHERE id = ?`;
   const value = [id];
   const deletePost = await executeQuery(query, value);
-  const deleteComments = await executeQuery(query1, value);
+  return deletePost;
+};
+
+Post.deletePost = async function (id) {
+  const query = "DELETE FROM posts WHERE id = ?";
+  const value = [id];
+  const deletePost = await executeQuery(query, value);
   return deletePost;
 };
 
 Post.deletePostComment = function (id, result) {
-  db.query("DELETE FROM comments WHERE id = ?", [id], function (err, res) {
-    if (err) {
-      console.log("error", err);
-      result(err, null);
-    } else {
-      result(null, res);
+  db.query(
+    "DELETE FROM comments WHERE parentCommentId = ? or id = ?",
+    [id, id],
+    function (err, res) {
+      if (err) {
+        console.log("error", err);
+        result(err, null);
+      } else {
+        result(null, res);
+      }
     }
-  });
+  );
 };
 Post.deleteAllData = async function (id) {
   const query = "delete from comments where profileId = ?";

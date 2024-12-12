@@ -16,10 +16,7 @@ class subscribeChannel {
       id,
     ]);
   }
-  static async removeByProfileIdAndSubscribeChannelId(
-    profileId,
-    SubscribeChannelId
-  ) {
+  static async removeByProfileIdAndSubscribeChannelId(profileId, SubscribeChannelId) {
     return await executeQuery(
       "DELETE FROM subscribe_channel WHERE ProfileId=? AND SubscribeChannelId=?;",
       [profileId, SubscribeChannelId]

@@ -58,10 +58,8 @@ featuredChannels.searchAllData = async (search) => {
   const query = `select * from featured_channels where firstname like '%${search}%' or unique_link like '%${search}%'`;
   const channels = await executeQuery(query);
   const query1 = `select p.* ,pr.Username,pr.ProfilePicName,pr.FirstName,pr.LastName,fc.firstname as channelName from posts as p left join profile as pr on p.profileid = pr.ID left join featured_channels as fc on fc.id = p.channelId WHERE p.posttype = 'V' and p.isdeleted = "N" and (p.videoduration is not NULL or p.videoduration != 0 or p.videoduration != "0" ) and (p.postdescription like '%${search}%' or p.keywords like '%${search}%' or p.title like '%${search}%') order by p.id desc`;
-  console.log("query1: ", query1);
   const value1 = [search, search];
   const posts = await executeQuery(query1);
-  //console.log(channels, posts);
   return { channels, posts };
 };
 
@@ -76,16 +74,11 @@ featuredChannels.getCategory = async () => {
 };
 
 featuredChannels.getChannelById = async function (name) {
-  const query = "select * from featured_channels where unique_link = ?";
-  const value = [name];
-  const [channels] = await executeQuery(query, value);
+  const query =
+    "select * from featured_channels where profileid = ? or unique_link = ?";
+  const value = [name, name];
+  const channels = await executeQuery(query, value);
   if (channels) {
-    const query3 = `select count(Id) as subscribers from subscribe_channel where SubscribeChannelId = ?`;
-    const query4 = `select count(id) as videoCount from posts where channelId = ?`;
-    const [subscribers] = await executeQuery(query3, channels.id);
-    const [posts] = await executeQuery(query4, channels.id);
-    channels.subscribers = subscribers.subscribers;
-    channels.videoCount = posts.videoCount;
     return channels;
   }
 };
@@ -117,7 +110,6 @@ featuredChannels.getUsersByUsername = async function (searchText) {
     const query = `select p.ID as Id, p.Username,p.ProfilePicName from profile as p left join users as u on u.Id = p.UserID WHERE u.IsAdmin='N' AND u.IsSuspended='N' AND p.Username LIKE ? order by p.Username limit 500`;
     const values = [`${searchText}%`];
     const searchData = await executeQuery(query, values);
-    console.log(searchData);
 
     return searchData;
   } else {
@@ -130,7 +122,6 @@ featuredChannels.getChannelByUserId = async function (id) {
     "select f.* from featured_channels as f left join profile as p on p.ID = f.profileid where f.profileid in(p.ID) and p.UserID = ? and feature = 'Y';";
   const value = [id];
   const channels = await executeQuery(query, value);
-  console.log(channels);
   if (channels) {
     return channels;
   }
@@ -162,7 +153,6 @@ featuredChannels.getPostDetails = async function (id, profileId) {
 pl.PostID = ? left join featured_channels as fc on fc.id = p.channelId where p.id = ?`;
   const values = [profileId, id, id];
   const channels = await executeQuery(query, values);
-  console.log("channels", channels, query);
   if (channels) {
     return channels;
   }
@@ -211,7 +201,6 @@ featuredChannels.createChannel = async function (reqBody) {
   const query1 = "select * from featured_channels where unique_link = ?";
   const value = [reqBody.unique_link];
   const oldchannels = await executeQuery(query1, value);
-  console.log("oldchannels", oldchannels);
   if (!oldchannels.length) {
     const query = "insert into featured_channels set ?";
     const values = [reqBody];
@@ -261,40 +250,6 @@ featuredChannels.getChannelVideos = async function (
 };
 
 featuredChannels.getVideos = async function (limit, offset, profileId) {
-  // const whereCondition =
-  //   "p.posttype = 'V' and p.streamname is not null and p.channelId is not null";
-  // const searchCount = await executeQuery(
-  //   `SELECT count(id) as count FROM posts as p WHERE ${whereCondition}`
-  // );
-  // const orderBy = `order by p.channelId in (SELECT SubscribeChannelId from subscribe_channel where ProfileId= ${profileId}) and p.postdescription desc`;
-  // const query = `select p.*,fc.firstname,fc.unique_link,fc.profile_pic_name,fc.created from posts as p left join featured_channels as fc on fc.id = p.channelId left join category as c on c.categoryName = p.categoryName where ${whereCondition} ${
-  //   profileId ? orderBy : "order by p.postdescription desc"
-  // } limit ? offset ? `;
-  // const values = [limit, offset];
-  // const posts = await executeQuery(query, values);
-  // if (posts) {
-  //   const postList = posts.reduce((acc, post) => {
-  //     const { categoryName } = post;
-  //     const category =
-  //       categoryName === null || categoryName.trim() === ""
-  //         ? "featuredVideos"
-  //         : categoryName.toLowerCase();
-
-  //     if (!acc[category]) {
-  //       acc[category] = [];
-  //     }
-
-  //     if (acc[category].length < 8) {
-  //       acc[category].push(post);
-  //     }
-
-  //     return acc;
-  //   }, {});
-  //   return {
-  //     count: searchCount?.[0]?.count || 0,
-  //     data: postList,
-  //   };
-  // }
 
   const whereCondition =
     "p.posttype = 'V' and p.streamname is not null and p.channelId is not null";
@@ -390,6 +345,15 @@ featuredChannels.removeFormChannel = function (profileId, channelId, result) {
       }
     }
   );
+};
+
+featuredChannels.createChannelApplication = async function (data) {
+  const query = "insert into channel_application set ?";
+  const values = data;
+  const application = await executeQuery(query, values);
+  if (application) {
+    return application;
+  }
 };
 
 module.exports = featuredChannels;

@@ -136,7 +136,67 @@ User.findAndSearchAll = async (limit, offset, search, startDate, endDate) => {
     `SELECT count(Id) as count FROM users as u WHERE ${whereCondition}`
   );
   const searchData = await executeQuery(
-    `SELECT u.Id, u.Email, u.Username, u.IsActive, u.DateCreation, u.IsAdmin, u.FirstName, u.LastName, u.Address, u.Country, u.City, u.State, u.Zip, u.AccountType, u.IsSuspended,p.MobileNo,p.ProfilePicName,p.ID as profileId,p.MediaApproved FROM users as u left join profile as p on p.UserID = u.Id and p.AccountType IN ('I','M') WHERE ${whereCondition} order by DateCreation desc limit ? offset ?`,
+    `SELECT 
+    u.Id, 
+    u.Email, 
+    u.Username, 
+    u.IsActive, 
+    u.DateCreation, 
+    u.IsAdmin, 
+    u.FirstName, 
+    u.LastName, 
+    u.Address, 
+    u.Country, 
+    u.City, 
+    u.State, 
+    u.Zip, 
+    u.AccountType, 
+    u.IsSuspended,
+    p.MobileNo,
+    p.ProfilePicName,
+    p.ID as profileId,
+    p.MediaApproved,
+    COUNT(us.Id) as unsubscribeCount 
+FROM 
+    users as u 
+LEFT JOIN 
+    profile as p 
+ON 
+    p.UserID = u.Id 
+    AND p.AccountType IN ('I','M') 
+LEFT JOIN 
+    unsubscribe_profiles as us 
+ON 
+    us.UnsubscribeProfileId = p.ID 
+WHERE 
+    ${whereCondition}
+GROUP BY 
+    u.Id, 
+    u.Email, 
+    u.Username, 
+    u.IsActive, 
+    u.DateCreation, 
+    u.IsAdmin, 
+    u.FirstName, 
+    u.LastName, 
+    u.Address, 
+    u.Country, 
+    u.City, 
+    u.State, 
+    u.Zip, 
+    u.AccountType, 
+    u.IsSuspended,
+    p.MobileNo,
+    p.ProfilePicName,
+    p.ID,
+    p.MediaApproved
+ORDER BY 
+    u.DateCreation DESC 
+LIMIT 
+    ? 
+OFFSET 
+    ?;
+`,
     [limit, offset]
   );
 
@@ -217,10 +277,6 @@ User.delete = async function (userId, profileId) {
   const values1 = [profileId];
   await executeQuery(query, values1);
   await executeQuery(query1, values1);
-  await executeQuery(query2, values1);
-  await executeQuery(query3, values1);
-  await executeQuery(query4, values1);
-  await executeQuery(query5, values1);
   await executeQuery(query6, values);
   const data = await executeQuery(query7, values1);
   console.log(data);
@@ -289,7 +345,12 @@ User.adminLogin = function (email, result) {
         } else {
           console.log("Login Data");
           console.log(user);
-          const token = await generateJwtToken(res[0]);
+          const token = await generateJwtToken({
+            profileId: user.Id,
+            UserName: user.Username,
+            IsActive: user.IsActive,
+          });
+
           return result(null, {
             userId: user.Id,
             user: user,
