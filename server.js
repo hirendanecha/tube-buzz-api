@@ -15,20 +15,29 @@ app.use(
   })
 );
 
+// app.use((req, res, next) => {
+//   res.header("Access-Control-Allow-Origin", "*");
+//   res.header(
+//     "Access-Control-Allow-Headers",
+//     "Origin, X-Requested-With, Content-Type, Accept"
+//   );
+//   if (req.method === "OPTIONS") {
+//     res.header("Access-Control-Allow-Methods", "PUT, POST, PATCH, DELETE, GET");
+//     return res.status(200).json({});
+//   }
+//   next();
+// });
+
 app.use(helmet()); // Add Helmet as a middleware
 
 app.use(morgan("tiny"));
 
-app.use(
-  bodyParser.urlencoded({ extended: true, limit: 1024 * 1024 * 1024 * 10 })
-);
-app.use(
-  bodyParser.json({
-    limit: 1024 * 1024 * 1024 * 10,
-  })
-);
+app.use(bodyParser.urlencoded({ extended: true, limit: 1024 * 1024 * 1024 * 10 }));
+app.use(bodyParser.json({
+  limit: 1024 * 1024 * 1024 * 10
+}));
 
-app.use(cookieParser());
+app.use(cookieParser())
 
 // app.options("*", cors(corsOptions));
 
@@ -49,5 +58,16 @@ try {
 }
 
 const port = process.env.PORT || 8080;
+
+// app.listen(port, "127.0.0.1", function () {
+//   console.log(`Server listening on port ${port}`);
+// });
+
+// const sport = process.env.PORT || 5050;
+
+// http.createServer(app).listen(sport, function () {
+//   console.log(`Https Server listening on port ${sport}`);
+//   socket.config(app);
+// });
 
 module.exports = app;
