@@ -143,11 +143,11 @@ exports.channelNotificationEmail = async (userData) => {
 
 
 exports.channelCreationMail = async (adminMail, userName) => {
-  let redirectUrl = "https://admin.tube.buzz/community";
-  let msg = `${userName} has create community on Tube.buzz.`;
+  let redirectUrl = "https://admin.tube.buzz/channel";
+  let msg = `${userName} has create channel on Tube.buzz.`;
   const mailObj = {
     email: adminMail,
-    subject: "New community registered",
+    subject: "New channel registered",
     root: "../email-templates/notification.ejs",
     templateData: { name: "Admin", msg: msg, url: redirectUrl },
   };
