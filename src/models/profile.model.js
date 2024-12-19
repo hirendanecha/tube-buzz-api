@@ -106,7 +106,9 @@ FROM users as u left join profile as p on p.UserID = u.Id Where p.ID = ?;`;
     "select c.channelId from channelAdmins as c left join profile as p on p.ID = c.profileId where c.profileId = p.ID and p.UserID = ?;";
   const value1 = [profile[0]?.UserID];
   const channelId = await executeQuery(query1, value1);
-  profile[0]["channelId"] = channelId[0]?.channelId;
+  if (channelId?.length) {
+    profile[0]["channelId"] = channelId[0]?.channelId || null;
+  }
   return profile[0];
 };
 

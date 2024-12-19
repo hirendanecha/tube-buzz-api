@@ -65,7 +65,6 @@ featuredChannels.searchAllData = async (search) => {
 
 featuredChannels.getCategory = async () => {
   const query = "select * from category";
-  console.log("q", query);
   const categories = await executeQuery(query);
   console.log(categories);
   if (categories) {
@@ -264,7 +263,8 @@ featuredChannels.getVideos = async function (limit, offset, profileId) {
   } limit ? offset ? `;
   const values = [limit, offset];
   const posts = await executeQuery(query, values);
-
+  console.log('posts===>', posts);
+  
   if (posts) {
     const postList = posts.reduce((acc, post) => {
       const { categoryName, created } = post;
@@ -280,7 +280,6 @@ featuredChannels.getVideos = async function (limit, offset, profileId) {
       if (acc[category].length < 8) {
         acc[category].push(post);
       }
-
       // Check if the post is recent and add to recentPosted category
       const recentPosted = "recentPosted";
       const isRecent =

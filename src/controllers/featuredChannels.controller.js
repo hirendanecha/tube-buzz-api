@@ -72,7 +72,8 @@ exports.getChannelById = async function (req, res) {
   try {
     const name = req.params.name;
     const profileId = req.query.profileId;
-    const data = await featuredChannels.getChannelById(name);
+    const [data] = await featuredChannels.getChannelById(name);
+    console.log("data", data);
     if (data) {
       if (profileId) {
         const isSubscribed = await findSubscribers(profileId, data.id);

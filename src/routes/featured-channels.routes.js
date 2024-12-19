@@ -5,13 +5,13 @@ const authorize = require("../middleware/authorize");
 
 router.get("/", featuredChannels.getChannels);
 router.get("/get/:id", featuredChannels.findChannelById);
+router.get("/get-categories", featuredChannels.getCategories);
 router.get("/search-user", featuredChannels.getUsersByUsername);
 router.get("/:name", featuredChannels.getChannelById);
 router.get("/my-channel/:id", featuredChannels.getChannelByUserId);
 router.get("/post/:id", featuredChannels.getPostDetails);
 router.post("/posts", featuredChannels.getVideos);
 router.post("/my-posts", featuredChannels.getChannelVideos);
-router.get("/get-category", featuredChannels.getCategories);
 router.get("/get/:id", featuredChannels.findChannelById);
 router.get("/my-channel/:id", featuredChannels.getChannelByUserId);
 router.get("/posts/:category", featuredChannels.getPostByCategory);
